@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#102032">
+  <meta name="description" content="Calculate cable signal loss from its length and attenuation specification in dB per 100 feet.">
+  <title>Cable Signal Loss Calculator</title>
+  <style>
+    :root { color-scheme: dark; font-family: system-ui, -apple-system, Segoe UI, sans-serif; background: #0b1522; color: #edf5ff; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+    main { width: min(100%, 640px); }
+    h1 { font-size: clamp(1.8rem, 5vw, 2.6rem); line-height: 1.15; margin: 0 0 10px; }
+    .intro, .hint { color: #afbed0; line-height: 1.5; }
+    .card { background: #152438; border: 1px solid #31445b; border-radius: 18px; padding: clamp(20px, 5vw, 32px); box-shadow: 0 20px 60px #0004; }
+    .fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin: 26px 0; }
+    label { font-weight: 650; display: block; }
+    .input-wrap { display: flex; align-items: center; margin-top: 8px; border: 1px solid #61758b; border-radius: 10px; background: #0d1b2b; }
+    .input-wrap:focus-within { outline: 2px solid #63beff; outline-offset: 2px; }
+    input { color: inherit; border: 0; outline: 0; background: transparent; width: 100%; min-width: 0; padding: 14px; font: inherit; font-size: 1.1rem; }
+    .unit { color: #b8c9da; white-space: nowrap; padding-right: 13px; font-size: .9rem; }
+    .result { background: #0c1b2c; border-radius: 12px; padding: 22px; }
+    .result-label { color: #b8c9da; margin: 0 0 4px; }
+    output { font-size: clamp(2.5rem, 10vw, 4rem); font-weight: 750; font-variant-numeric: tabular-nums; color: #8bd5ff; }
+    .result-unit { font-size: 1.2rem; color: #b8c9da; }
+    #work { color: #b8c9da; overflow-wrap: anywhere; margin: 14px 0 0; font-variant-numeric: tabular-nums; }
+    #error { color: #ffada9; min-height: 1.4em; margin: 10px 0; }
+    button { background: #263d56; color: #edf5ff; border: 1px solid #61758b; border-radius: 10px; padding: 11px 18px; font: inherit; cursor: pointer; }
+    button:hover { background: #345371; }
+    button:focus-visible { outline: 2px solid #63beff; outline-offset: 2px; }
+    footer { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 22px; }
+    footer .hint { font-size: .88rem; margin: 0; }
+    @media (max-width: 500px) { .fields { grid-template-columns: 1fr; } footer { align-items: flex-start; flex-direction: column; } }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>Cable Signal Loss Calculator</h1>
+    <p class="intro">Enter the cable length and its attenuation spec at the frequency you are measuring.</p>
+    <div class="fields">
+      <label for="length">Cable length<div class="input-wrap"><input id="length" type="number" inputmode="decimal" min="0" step="any" value="250"><span class="unit">ft</span></div></label>
+      <label for="spec">Cable loss spec<div class="input-wrap"><input id="spec" type="number" inputmode="decimal" min="0" step="any" value="3.5"><span class="unit">dB / 100 ft</span></div></label>
+    </div>
+    <p id="error" role="alert"></p>
+    <section class="result" aria-live="polite">
+      <p class="result-label">Total cable loss</p>
+      <output id="loss" for="length spec">8.75</output> <span class="result-unit">dB</span>
+      <p id="work">(250 ÷ 100) × 3.5 = 8.75 dB</p>
+    </section>
+    <footer><p class="hint">Formula: (length ÷ 100) × spec = loss</p><button id="clear" type="button">Clear</button></footer>
+  </main>
+  <script>
+    const lengthInput = document.querySelector('#length');
+    const specInput = document.querySelector('#spec');
+    const output = document.querySelector('#loss');
+    const work = document.querySelector('#work');
+    const error = document.querySelector('#error');
+    const format = value => Number(value.toPrecision(10)).toLocaleString(undefined, { maximumFractionDigits: 6 });
+    function calculate() {
+      const length = Number(lengthInput.value);
+      const spec = Number(specInput.value);
+      if (lengthInput.value === '' || specInput.value === '') {
+        output.textContent = '—'; work.textContent = 'Enter both values to calculate.'; error.textContent = ''; return;
+      }
+      if (!Number.isFinite(length) || !Number.isFinite(spec) || length < 0 || spec < 0) {
+        output.textContent = '—'; work.textContent = ''; error.textContent = 'Enter values of zero or greater.'; return;
+      }
+      const loss = length * spec / 100;
+      error.textContent = '';
+      output.textContent = format(loss);
+      work.textContent = `(${format(length)} ÷ 100) × ${format(spec)} = ${format(loss)} dB`;
+    }
+    lengthInput.addEventListener('input', calculate);
+    specInput.addEventListener('input', calculate);
+    document.querySelector('#clear').addEventListener('click', () => { lengthInput.value = ''; specInput.value = ''; calculate(); lengthInput.focus(); });
+    calculate();
+  </script>
+</body>
+</html>
